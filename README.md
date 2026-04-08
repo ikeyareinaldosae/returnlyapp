@@ -28,7 +28,8 @@ Returnly is a React Native application built with **Expo** and **Firebase**. It 
 - **Modern UI/UX:** A clean, airy design using semi-transparent containers and a vibrant green palette.
 - **Intelligent Layouts:** Optimized for all screen sizes using React Native Flexbox.
 - **Custom Branding:** Includes a custom-branded splash screen and integrated logo assets.
-- **Privacy First:** Hidden matching logic ensures that lost items aren't publicly listed.
+- [TO BE IMPLEMENTED]**Privacy First:** Hidden matching logic ensures that lost items aren't publicly listed.
+- [TO BE IMPLEMENTED]**Lost / Found Items Listing:** Individual forms to create listing. Including calendar, image picker and location.
 
 ---
 
