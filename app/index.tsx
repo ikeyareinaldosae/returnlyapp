@@ -7,6 +7,9 @@ import React, { useState } from "react";
 import {
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -45,34 +48,55 @@ const index = () => {
       style={styles.screenWrapper}
       resizeMode="cover"
     >
+
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.loginBox}>
-        <Image
-          source={require("../assets/images/returnly_logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Login</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.textInput}
-          placeholder="password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity style={styles.button} onPress={signIn}>
-          <Text style={styles.text}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={signUp}>
-          <Text style={styles.text}>Create Account</Text>
-        </TouchableOpacity>
-      </View>
+    
+      {/* 1. Use KeyboardAvoidingView so the keyboard doesn't hide your inputs */}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, width: '100%' }}
+        keyboardVerticalOffset={-300}
+      >
+        {/* 2. ScrollView allows the content to move */}
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.loginBox}>
+            <Image
+              source={require("../assets/images/returnly_logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+          />
+            <Text style={styles.title}>Login</Text>
+            
+            <TextInput
+              style={styles.textInput}
+              placeholder="email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none" // Recommended for emails
+            />
+            
+            <TextInput
+              style={styles.textInput}
+              placeholder="password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCorrect={false}
+            />
+            
+            <TouchableOpacity style={styles.button} onPress={signIn}>
+              <Text style={styles.text}>Login</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.button} onPress={signUp}>
+              <Text style={styles.text}>Create Account</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -80,6 +104,14 @@ const index = () => {
 export default index;
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1, 
+    // Remove justifyContent: "center" if it feels jumpy, 
+    // or keep it but ensure the KeyboardAvoidingView is configured right.
+    justifyContent: "center", 
+    alignItems: "center",
+    paddingVertical: 20, // Reduced from 50 to keep it tighter
+  },
   screenWrapper: {
     flex: 1,
     width: "100%",

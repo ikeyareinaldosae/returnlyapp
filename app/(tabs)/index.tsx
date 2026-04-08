@@ -1,6 +1,7 @@
 import { router, Stack } from "expo-router";
 import { getAuth } from "firebase/auth";
 import {
+  Image,
   ImageBackground,
   StyleSheet,
   Text,
@@ -36,8 +37,30 @@ export default function TabOneScreen() {
             <Text style={styles.signout}>Sign out</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.title}>Hi, Reinaldo</Text>
-        <Text style={styles.subtitle}>1035887</Text>
+        <View style={styles.header}>
+          <View style={styles.col1}>
+            <Text style={styles.title}>Hi, Reinaldo</Text>
+            <Text style={styles.subtitle}>1035887</Text>
+          </View>
+
+          <View style={styles.col2}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => router.push("/two")}>
+              <Image
+                source={require("../../assets/images/sort.png")}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.headerButton} onPress={() => router.push("/two")}>
+              <Image
+                source={require("../../assets/images/gear.png")}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
         <Text style={styles.mainText}>Welcome to Returnly</Text>
         <Text style={styles.mainDescription}>
           We keep your belongings safe by keeping them private. Instead of a
@@ -47,13 +70,24 @@ export default function TabOneScreen() {
         </Text>
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/two")}>
+          <Image
+            source={require("../../assets/images/laptop.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.actionButtonText}>I Have Lost Something</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#54C47B" }]}
+          onPress={() => router.push("/two")}
         >
+          <Image
+            source={require("../../assets/images/phone.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.actionButtonText}>I Have Found Something</Text>
         </TouchableOpacity>
       </View>
@@ -68,6 +102,41 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center", // Vertical center
     alignItems: "center", // Horizontal center
+  },
+  header: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+    alignItems: "center",
+    // Add horizontal padding so nothing touches the absolute edges
+    paddingHorizontal: 20, 
+    marginBottom: 20,
+  },
+  col1: {
+    flex: 2, // Takes up more space for the name
+    justifyContent: "center",
+  },
+  col2: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    // This ensures the group of buttons stays away from the right edge
+  },
+  headerButton: {
+    width: 45,
+    height: 45,
+    // This creates the gap BETWEEN the two buttons
+    marginLeft: 12, 
+    backgroundColor: "#f0f0f0",
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   // This is your white 80% wide box
   loginBox: {
@@ -147,22 +216,15 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "800",
     color: "#2F2F2F",
-    alignSelf: "flex-start",
-    marginTop: 0,
-    paddingLeft: 20,
-    marginBottom: 40,
+    marginBottom: 0, // Reset these for tighter alignment
   },
   subtitle: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "500",
     color: "#888888",
-    alignSelf: "flex-start",
-    marginTop: -40,
-    paddingLeft: 20,
-    marginBottom: 40,
   },
   mainText: {
     fontSize: 22,
@@ -221,6 +283,14 @@ const styles = StyleSheet.create({
     width: 120, // Adjust width as needed
     height: 120, // Adjust height as needed
     marginBottom: 20,
+    // If your logo has a specific brand color,
+    // you can use tintColor to force it to match your Indigo theme:
+    // tintColor: '#1A237E',
+  },
+  image: {
+    width: 20, // Adjust width as needed
+    height: 20, // Adjust height as needed
+    tintColor: "#419FDC",
     // If your logo has a specific brand color,
     // you can use tintColor to force it to match your Indigo theme:
     // tintColor: '#1A237E',
