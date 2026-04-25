@@ -1,100 +1,119 @@
 import { router, Stack } from "expo-router";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore"; // Firestore methods
 import React, { useState } from "react";
 import {
-  Image,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { auth } from "../FirebaseConfig";
+import { auth, db } from "../FirebaseConfig";
 
-const index = () => {
+const Register = () => {
+  const [name, setName] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const signIn = async () => {
+  const handleSignUp = async () => {
+    if (!name || !studentNumber || !email || !password) {
+      alert("All fields are required");
+      return;
+    }
+
     try {
-      const user = await signInWithEmailAndPassword(auth, email, password);
-      if (user) router.replace("/(tabs)");
+      // 1. Create the user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const user = userCredential.user;
+
+      // 2. Save custom data to Firestore
+      // We use the 'uid' from Auth as the Document ID to keep them linked
+      await setDoc(doc(db, "users", user.uid), {
+        fullName: name,
+        studentId: studentNumber,
+        email: email,
+        createdAt: new Date().toISOString(),
+      });
+
+      router.replace("/(tabs)");
     } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed: " + error.message);
+      alert("Registration failed: " + error.message);
     }
   };
-
-  const signUp = async () => {
-    try {
-      const user = await createUserWithEmailAndPassword(auth, email, password);
-      if (user) router.replace("/(tabs)");
-    } catch (error: any) {
-      console.log(error);
-      alert("Sign in failed: " + error.message);
-    }
-  };
-
   return (
     <ImageBackground
       source={require("../assets/images/returnly_bg.png")}
       style={styles.screenWrapper}
       resizeMode="cover"
     >
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Create Account",
+          headerTransparent: true,
+          headerTintColor: "#54C47B",
+        }}
+      />
 
-      {/* 1. Use KeyboardAvoidingView so the keyboard doesn't hide your inputs */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, width: "100%" }}
-        keyboardVerticalOffset={-300}
+        // Adjust this to 0 or a small positive number if you have a header
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        {/* 2. ScrollView allows the content to move */}
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.loginBox}>
-            <Image
-              source={require("../assets/images/returnly_logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Sign Up</Text>
 
             <TextInput
               style={styles.textInput}
-              placeholder="email"
+              placeholder="Full Name"
+              value={name}
+              onChangeText={setName}
+            />
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="Student Number"
+              value={studentNumber}
+              onChangeText={setStudentNumber}
+              keyboardType="numeric" // Shows the number pad on mobile
+            />
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="Email"
               value={email}
               onChangeText={setEmail}
-              autoCapitalize="none" // Recommended for emails
+              autoCapitalize="none"
             />
 
             <TextInput
               style={styles.textInput}
-              placeholder="password"
+              placeholder="Password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              autoCorrect={false}
             />
 
-            <TouchableOpacity style={styles.button} onPress={signIn}>
-              <Text style={styles.text}>Login</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+              <Text style={styles.text}>Register</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.push("/signup")}
-            >
-              <Text style={styles.text}>Create Account</Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={{ color: "#3C4858", marginTop: 10 }}>
+                Already have an account? Login
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -103,16 +122,14 @@ const index = () => {
   );
 };
 
-export default index;
+export default Register;
 
+// You can reuse your existing styles here or import them from a common styles file
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    // Remove justifyContent: "center" if it feels jumpy,
-    // or keep it but ensure the KeyboardAvoidingView is configured right.
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20, // Reduced from 50 to keep it tighter
+    justifyContent: "center", // This centers the box when the keyboard is CLOSED
+    paddingBottom: 40,
   },
   screenWrapper: {
     flex: 1,
@@ -123,19 +140,15 @@ const styles = StyleSheet.create({
   },
   // This is your white 80% wide box
   loginBox: {
-    width: "85%", // Adjusted to 85% for better breathing room
-    paddingVertical: 40, // Box grows based on content
+    width: "85%",
+    paddingVertical: 30,
     paddingHorizontal: 20,
     backgroundColor: "#FAFAFA",
     borderRadius: 25,
     alignItems: "center",
-    justifyContent: "center",
-    // Shadow for that "floating" effect
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 10,
+    // Remove justifyContent: "center" to prevent vertical "jitter"
+    alignSelf: "center", // Ensures it stays centered horizontally
+    marginVertical: 40, // Adds space so it doesn't touch screen edges
   },
   container: {
     flex: 1,
@@ -167,14 +180,12 @@ const styles = StyleSheet.create({
     color: "#54C47B", // A deep indigo for a sophisticated, modern look
   },
   textInput: {
-    height: 50, // Standard height for elegance and simplicity
-    width: "90%", // Full width for a more expansive feel
-    backgroundColor: "#FFFFFF", // Pure white for contrast against the container
-    borderColor: "#E8EAF6", // A very light indigo border for subtle contrast
-    borderWidth: 2,
-    borderRadius: 15, // Softly rounded corners for a modern, friendly touch
-    marginVertical: 15,
-    paddingHorizontal: 25, // Generous padding for ease of text entry
+    height: 55,
+    width: "100%", // Use 100% of the parent container (loginBox)
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    marginVertical: 10, // Consistent spacing
+    paddingHorizontal: 20,
     fontSize: 16, // Comfortable reading size
     color: "#3C4858", // A dark gray for readability with a hint of warmth
     shadowColor: "#9E9E9E", // A medium gray shadow for depth
@@ -184,10 +195,10 @@ const styles = StyleSheet.create({
     elevation: 4, // Slightly elevated for a subtle 3D effect
   },
   button: {
-    width: "90%",
+    width: "100%", // Match the input width
+    padding: 18,
     marginVertical: 15,
     backgroundColor: "#419FDC", // A lighter indigo to complement the title color
-    padding: 20,
     borderRadius: 15, // Matching rounded corners for consistency
     alignItems: "center",
     justifyContent: "center",

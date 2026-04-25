@@ -1,4 +1,26 @@
-# Returnly 📱
+# Returnly Version 1.5 (25/04/2026)
+
+## 🔧 Dependencies
+
+- npx expo install expo-image-picker
+- npx expo install react-native-modern-datepicker
+
+---
+
+## ✨ Features
+
+- **Lost / Found Items Listing:** Individual forms to create listing. Including calendar, image picker and location.
+
+---
+
+## ⚡ Features to implement / improve
+
+- **Sign Out:** Currently the sign out button is not prperly taking the user to the login page.
+- **Navigation:** When navigating to previous pages when swiping, the app closes instead of taking it back one page.
+
+---
+
+# Returnly Version 1.0
 
 > An elegant solution for recovering lost belongings while maintaining privacy.
 

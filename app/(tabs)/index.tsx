@@ -1,5 +1,6 @@
 import { router, Stack } from "expo-router";
-import { getAuth } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore"; // Add Firestore methods
+import { useEffect, useState } from "react"; // Add hooks
 import {
   Image,
   ImageBackground,
@@ -8,12 +9,45 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth } from "../../FirebaseConfig";
+import { auth, db } from "../../FirebaseConfig"; // Ensure db is exported from your config
 
 export default function TabOneScreen() {
-  getAuth().onAuthStateChanged((user) => {
-    if (!user) router.replace("/");
-  });
+  const [userName, setUserName] = useState("User"); // Default name
+  const [studentId, setStudentId] = useState(""); // Default ID
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser; // Get the currently logged-in user
+
+      if (user) {
+        try {
+          // Reference the specific document in the 'users' collection
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserName(data.fullName); // Matches the key used in Register.tsx
+            setStudentId(data.studentId); // Matches the key used in Register.tsx
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.replace("/");
+      }
+    });
+
+    return unsubscribe; // This "unsubscribes" when the user leaves the page
+  }, []);
 
   return (
     <ImageBackground
@@ -29,22 +63,37 @@ export default function TabOneScreen() {
         </TouchableOpacity>
       </View> */}
       <View style={styles.loginBox}>
-        <View>
+        <View style={styles.topActionRow}>
           <TouchableOpacity
-            style={styles.signoutContainer}
-            onPress={() => auth.signOut()}
+            onPress={async () => {
+              try {
+                console.log("Sign out pressed");
+                await auth.signOut();
+
+                // Force the router to clear the stack and go to the root
+                if (router.canGoBack()) {
+                  router.dismissAll();
+                }
+                router.replace("/");
+              } catch (error) {
+                console.error("Error signing out: ", error);
+              }
+            }}
           >
-            <Text style={styles.signout}>Sign out</Text>
+            <Text style={styles.signoutText}>Sign out</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.header}>
           <View style={styles.col1}>
-            <Text style={styles.title}>Hi, Reinaldo</Text>
-            <Text style={styles.subtitle}>1035887</Text>
+            <Text style={styles.title}>Hi, {userName}</Text>
+            <Text style={styles.subtitle}>{studentId}</Text>
           </View>
 
           <View style={styles.col2}>
-            <TouchableOpacity style={styles.headerButton} onPress={() => router.push("/two")}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => router.push("/two")}
+            >
               <Image
                 source={require("../../assets/images/sort.png")}
                 style={styles.image}
@@ -52,7 +101,10 @@ export default function TabOneScreen() {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.headerButton} onPress={() => router.push("/two")}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => router.push("/two")}
+            >
               <Image
                 source={require("../../assets/images/gear.png")}
                 style={styles.image}
@@ -70,7 +122,10 @@ export default function TabOneScreen() {
         </Text>
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/two")}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => router.push("/two")}
+        >
           <Image
             source={require("../../assets/images/laptop.png")}
             style={styles.logo}
@@ -109,7 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     // Add horizontal padding so nothing touches the absolute edges
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
     marginBottom: 20,
   },
   col1: {
@@ -127,7 +182,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     // This creates the gap BETWEEN the two buttons
-    marginLeft: 12, 
+    marginLeft: 12,
     backgroundColor: "#f0f0f0",
     borderRadius: 25,
     alignItems: "center",
@@ -138,14 +193,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  // This is your white 80% wide box
+  topActionRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "flex-end", // Aligns to the right
+    paddingBottom: 10,
+    marginTop: -60, // Adjust this based on your paddingTop in loginBox
+  },
+  signoutText: {
+    color: "#419FDC",
+    fontWeight: "700",
+    fontSize: 14,
+    padding: 10, // Increases the touchable area
+  },
+  // Ensure loginBox doesn't hide the top row
   loginBox: {
     flex: 1,
-    width: "100%", // Adjusted to 85% for better breathing room
-    paddingVertical: 40, // Box grows based on content
+    width: "100%",
+    paddingVertical: 40,
     paddingHorizontal: 20,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
-    paddingTop: 100,
+    paddingTop: 80, // Slightly reduced to make room for the signout row
     alignItems: "center",
     justifyContent: "flex-start",
   },

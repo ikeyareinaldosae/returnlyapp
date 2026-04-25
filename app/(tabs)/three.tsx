@@ -1,5 +1,4 @@
 import { router, Stack } from "expo-router";
-import { getAuth } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import {
   ImageBackground,
@@ -8,43 +7,29 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { auth } from "../../FirebaseConfig";
 
-const data = [
-  { label: "Electronics", value: "electronics" },
-  { label: "Documents", value: "documents" },
-  { label: "Personal Items", value: "personal" },
-  { label: "Accessories", value: "accessories" },
-  { label: "Other", value: "other" },
-];
+// @ts-ignore
+import DatePicker from "react-native-modern-datepicker";
 
-const colorData = [
-  { label: "Black", value: "black" },
-  { label: "White", value: "white" },
-  { label: "Silver/Grey", value: "silver" },
-  { label: "Blue", value: "blue" },
-  { label: "Red", value: "red" },
-  { label: "Gold", value: "gold" },
+const dataLocation = [
+  { label: "Entrance", value: "entrance" },
+  { label: "Lobby", value: "lobby" },
+  { label: "First Floor", value: "firstFloor" },
+  { label: "Second Floor", value: "secondFloor" },
+  { label: "Third Floor", value: "thirdFloor" },
+  { label: "Library", value: "library" },
   { label: "Other", value: "other" },
 ];
 
 export default function TabOneScreen() {
-  const [itemName, setItemName] = useState(""); // Add this line
-  const [category, setCategory] = useState(null); // State for dropdown
+  const [location, setLocation] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
-  const [color, setColor] = useState(null); // New state for color
-  const [isFocusColor, setIsFocusColor] = useState(false); // Focus state for color dropdown
-  const [description, setDescription] = useState("");
-  const [currentStep, setCurrentStep] = useState(1);
-
-  getAuth().onAuthStateChanged((user) => {
-    if (!user) router.replace("/");
-  });
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -60,12 +45,6 @@ export default function TabOneScreen() {
       resizeMode="cover"
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {/* <View style={styles.container}>
-        <Text style={styles.title}>Sign Out</Text>
-        <TouchableOpacity style={styles.button} onPress={() => auth.signOut()}>
-          <Text style={styles.text}>Sign Out</Text>
-        </TouchableOpacity>
-      </View> */}
       <View style={styles.loginBox}>
         <View>
           <TouchableOpacity
@@ -87,109 +66,72 @@ export default function TabOneScreen() {
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.label}>Item Name</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Type the name of the lost item"
-              placeholderTextColor="#a0a0a0b2"
-              value={itemName}
-              onChangeText={(text) => setItemName(text)}
-              autoCapitalize="words"
+            <Text style={styles.label}>When was it lost?</Text>
+
+            <DatePicker
+              onSelectedChange={(date: string) => setSelectedDate(date)}
+              onDateChange={() => {}}
+              isGregorian={true}
+              locale="en"
+              options={{
+                backgroundColor: "#FFFFFF",
+                textHeaderColor: "#419FDC",
+                textDefaultColor: "#3C4858",
+                selectedTextColor: "#fff",
+                mainColor: "#419FDC",
+                textSecondaryColor: "#888",
+                borderColor: "rgba(122, 146, 165, 0.1)",
+                defaultFont: "System",
+                headerFont: "System",
+              }}
+              current={new Date().toISOString().split("T")[0]} // Sets today as default
+              selected={selectedDate}
+              mode="calendar"
+              style={{ borderRadius: 15, marginTop: 20 }}
             />
 
-            <Text style={styles.label}>Category</Text>
+            <Text style={styles.selectedDateText}>
+              Selected Date: {selectedDate || "None"}
+            </Text>
+
+            <Text style={styles.label}>Last Seen Location</Text>
             <Dropdown
               style={[styles.dropdown, isFocus && { borderColor: "#419FDC" }]}
               placeholderStyle={styles.placeholderStyle}
               selectedTextStyle={styles.selectedTextStyle}
-              data={data}
+              data={dataLocation}
               maxHeight={300}
               labelField="label"
               valueField="value"
-              placeholder={!isFocus ? "Select category" : "..."}
-              value={category}
+              placeholder={!isFocus ? "Choose the location" : "..."}
+              value={location}
               onFocus={() => setIsFocus(true)}
               onBlur={() => setIsFocus(false)}
               onChange={(item) => {
-                setCategory(item.value);
+                setLocation(item.value);
                 setIsFocus(false);
               }}
-            />
-
-            <Text style={styles.label}>Item Color</Text>
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isFocusColor && { borderColor: "#419FDC" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={colorData}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isFocusColor ? "Select color" : "..."}
-              value={color}
-              onFocus={() => setIsFocusColor(true)}
-              onBlur={() => setIsFocusColor(false)}
-              onChange={(item) => {
-                setColor(item.value);
-                setIsFocusColor(false);
-              }}
-            />
-
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.descriptionInput} // We use a specific style here
-              placeholder="Provide details (e.g., brand, serial number, unique marks...)"
-              placeholderTextColor="#a0a0a0b2"
-              value={description}
-              onChangeText={(text) => setDescription(text)}
-              multiline={true} // Allows the text to wrap
-              numberOfLines={6} // Sets the initial height (Android)
-              textAlignVertical="top" // Important: Keeps text at the top on Android
             />
 
             <TouchableOpacity
               style={styles.nextButton}
               onPress={() => {
-                // Check Step 1 inputs
-                if (currentStep === 1) {
-                  if (
-                    !itemName.trim() ||
-                    !category ||
-                    !color ||
-                    !description.trim()
-                  ) {
-                    alert(
-                      "Please fill in all fields before moving to the next step.",
-                    );
-                    return; // Stops the function here
-                  }
-                  router.push("/three");
-                }
-
-                // If validation passes, move to the next step
-                if (currentStep < 3) {
-                  setCurrentStep(currentStep + 1);
-                } else {
-                  console.log("Final Submission Logic Here");
-                }
+                console.log("Moving to Step 2");
+                // logic to navigate or change state to Step 2
+                router.push("/four");
               }}
             >
-              <Text style={styles.nextButtonText}>
-                {currentStep === 3 ? "Submit Listing" : "Next"}
-              </Text>
+              <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
 
             {/* Step Indicator */}
             <View style={styles.stepContainer}>
-              <View style={[styles.stepBubble, styles.activeStep]}>
-                <Text style={styles.activeStepText}>1</Text>
+              <View style={styles.stepBubble}>
+                <Text style={styles.stepText}>1</Text>
               </View>
               <View style={styles.stepLine} />
-              <View style={styles.stepBubble}>
-                <Text style={styles.stepText}>2</Text>
+              <View style={[styles.stepBubble, styles.activeStep]}>
+                <Text style={styles.activeStepText}>2</Text>
               </View>
               <View style={styles.stepLine} />
               <View style={styles.stepBubble}>
@@ -253,6 +195,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     paddingTop: 80,
     alignItems: "flex-start",
+  },
+  selectedDateText: {
+    marginTop: 0,
+    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#419FDC",
   },
   signoutContainer: {
     alignSelf: "flex-end",

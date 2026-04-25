@@ -1,50 +1,35 @@
+import * as ImagePicker from "expo-image-picker";
 import { router, Stack } from "expo-router";
-import { getAuth } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import {
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    ImageBackground,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
 import { auth } from "../../FirebaseConfig";
 
-const data = [
-  { label: "Electronics", value: "electronics" },
-  { label: "Documents", value: "documents" },
-  { label: "Personal Items", value: "personal" },
-  { label: "Accessories", value: "accessories" },
-  { label: "Other", value: "other" },
-];
-
-const colorData = [
-  { label: "Black", value: "black" },
-  { label: "White", value: "white" },
-  { label: "Silver/Grey", value: "silver" },
-  { label: "Blue", value: "blue" },
-  { label: "Red", value: "red" },
-  { label: "Gold", value: "gold" },
-  { label: "Other", value: "other" },
-];
-
 export default function TabOneScreen() {
-  const [itemName, setItemName] = useState(""); // Add this line
-  const [category, setCategory] = useState(null); // State for dropdown
-  const [isFocus, setIsFocus] = useState(false);
-  const [color, setColor] = useState(null); // New state for color
-  const [isFocusColor, setIsFocusColor] = useState(false); // Focus state for color dropdown
-  const [description, setDescription] = useState("");
-  const [currentStep, setCurrentStep] = useState(1);
+  const [image, setImage] = useState<string | null>(null);
 
-  getAuth().onAuthStateChanged((user) => {
-    if (!user) router.replace("/");
-  });
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"], // Restrict to images only
+      allowsEditing: true, // Allows cropping
+      aspect: [4, 3], // Aspect ratio for cropping
+      quality: 1, // 1 is highest quality
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -60,12 +45,6 @@ export default function TabOneScreen() {
       resizeMode="cover"
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {/* <View style={styles.container}>
-        <Text style={styles.title}>Sign Out</Text>
-        <TouchableOpacity style={styles.button} onPress={() => auth.signOut()}>
-          <Text style={styles.text}>Sign Out</Text>
-        </TouchableOpacity>
-      </View> */}
       <View style={styles.loginBox}>
         <View>
           <TouchableOpacity
@@ -87,113 +66,41 @@ export default function TabOneScreen() {
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.label}>Item Name</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Type the name of the lost item"
-              placeholderTextColor="#a0a0a0b2"
-              value={itemName}
-              onChangeText={(text) => setItemName(text)}
-              autoCapitalize="words"
-            />
+            <Text style={styles.label}>Item Image</Text>
 
-            <Text style={styles.label}>Category</Text>
-            <Dropdown
-              style={[styles.dropdown, isFocus && { borderColor: "#419FDC" }]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={data}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isFocus ? "Select category" : "..."}
-              value={category}
-              onFocus={() => setIsFocus(true)}
-              onBlur={() => setIsFocus(false)}
-              onChange={(item) => {
-                setCategory(item.value);
-                setIsFocus(false);
-              }}
-            />
-
-            <Text style={styles.label}>Item Color</Text>
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isFocusColor && { borderColor: "#419FDC" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              data={colorData}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isFocusColor ? "Select color" : "..."}
-              value={color}
-              onFocus={() => setIsFocusColor(true)}
-              onBlur={() => setIsFocusColor(false)}
-              onChange={(item) => {
-                setColor(item.value);
-                setIsFocusColor(false);
-              }}
-            />
-
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.descriptionInput} // We use a specific style here
-              placeholder="Provide details (e.g., brand, serial number, unique marks...)"
-              placeholderTextColor="#a0a0a0b2"
-              value={description}
-              onChangeText={(text) => setDescription(text)}
-              multiline={true} // Allows the text to wrap
-              numberOfLines={6} // Sets the initial height (Android)
-              textAlignVertical="top" // Important: Keeps text at the top on Android
-            />
+            <TouchableOpacity
+              style={styles.imagePickerButton}
+              onPress={pickImage}
+            >
+              {image ? (
+                <Image source={{ uri: image }} style={styles.previewImage} />
+              ) : (
+                <Text style={styles.nextButtonText}>Upload Image</Text>
+              )}
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.nextButton}
               onPress={() => {
-                // Check Step 1 inputs
-                if (currentStep === 1) {
-                  if (
-                    !itemName.trim() ||
-                    !category ||
-                    !color ||
-                    !description.trim()
-                  ) {
-                    alert(
-                      "Please fill in all fields before moving to the next step.",
-                    );
-                    return; // Stops the function here
-                  }
-                  router.push("/three");
-                }
-
-                // If validation passes, move to the next step
-                if (currentStep < 3) {
-                  setCurrentStep(currentStep + 1);
-                } else {
-                  console.log("Final Submission Logic Here");
-                }
+                console.log("Moving to Step 2");
+                // logic to navigate or change state to Step 2
               }}
             >
-              <Text style={styles.nextButtonText}>
-                {currentStep === 3 ? "Submit Listing" : "Next"}
-              </Text>
+              <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
 
             {/* Step Indicator */}
             <View style={styles.stepContainer}>
-              <View style={[styles.stepBubble, styles.activeStep]}>
-                <Text style={styles.activeStepText}>1</Text>
+              <View style={styles.stepBubble}>
+                <Text style={styles.stepText}>1</Text>
               </View>
               <View style={styles.stepLine} />
               <View style={styles.stepBubble}>
                 <Text style={styles.stepText}>2</Text>
               </View>
               <View style={styles.stepLine} />
-              <View style={styles.stepBubble}>
-                <Text style={styles.stepText}>3</Text>
+              <View style={[styles.stepBubble, styles.activeStep]}>
+                <Text style={styles.activeStepText}>3</Text>
               </View>
             </View>
           </ScrollView>
@@ -253,6 +160,24 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     paddingTop: 80,
     alignItems: "flex-start",
+  },
+  imagePickerButton: {
+    width: "90%",
+    height: 200,
+    backgroundColor: "#E8EAF6",
+    borderRadius: 15,
+    borderStyle: "dashed",
+    borderWidth: 2,
+    borderColor: "#419FDC",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 20,
+    overflow: "hidden",
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
   },
   signoutContainer: {
     alignSelf: "flex-end",
