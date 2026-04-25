@@ -10,6 +10,8 @@
 ## ✨ Features
 
 - **Lost / Found Items Listing:** Individual forms to create listing. Including calendar, image picker and location.
+- **SignUp created:** A new screen dedicated for registration of new user. Now a form asking about name and student number.
+- **Dynamic Name and Student No:** Now the name and student no displayed on the home screen is dynamic. Displays the correct information of the person logged in.
 
 ---
 
@@ -17,6 +19,19 @@
 
 - **Sign Out:** Currently the sign out button is not prperly taking the user to the login page.
 - **Navigation:** When navigating to previous pages when swiping, the app closes instead of taking it back one page.
+- **Camera:** Work on the camera feature.
+
+---
+
+## 📸 Screenshots
+
+|                   SignUp Screen                    |            New Landing with Dynamic Info            |
+| :------------------------------------------------: | :-------------------------------------------------: |
+| <img src="./screenshots/signup.jpg" width="250" /> | <img src="./screenshots/landing.jpg" width="250" /> |
+
+|                Lost Item Listing 01                |                Lost Item Listing 02                |                Lost Item Listing 03                |
+| :------------------------------------------------: | :------------------------------------------------: | :------------------------------------------------: |
+| <img src="./screenshots/lost01.jpg" width="250" /> | <img src="./screenshots/lost02.jpg" width="250" /> | <img src="./screenshots/lost03.jpg" width="250" /> |
 
 ---
 
